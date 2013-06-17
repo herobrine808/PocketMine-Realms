@@ -1,29 +1,29 @@
 <?php
 
-require_once(dirname(__FILE__) . '/../bootstrap.php');
+require_once(dirname(__FILE__) . '/config/bootstrap.php');
 
-require_once(dirname(__FILE__) . '/../vendor/Klein/Klein.php');
-require_once(dirname(__FILE__) . '/../vendor/Klein/ServiceProvider.php');
-require_once(dirname(__FILE__) . '/../vendor/Klein/App.php');
-require_once(dirname(__FILE__) . '/../vendor/Klein/Request.php');
-require_once(dirname(__FILE__) . '/../vendor/Klein/Response.php');
-require_once(dirname(__FILE__) . '/../vendor/Klein/ResponseCookie.php');
-require_once(dirname(__FILE__) . '/../vendor/Klein/HttpStatus.php');
-require_once(dirname(__FILE__) . '/../vendor/Klein/Validator.php');
+require_once(dirname(__FILE__) . '/vendor/Klein/Klein.php');
+require_once(dirname(__FILE__) . '/vendor/Klein/ServiceProvider.php');
+require_once(dirname(__FILE__) . '/vendor/Klein/App.php');
+require_once(dirname(__FILE__) . '/vendor/Klein/Request.php');
+require_once(dirname(__FILE__) . '/vendor/Klein/Response.php');
+require_once(dirname(__FILE__) . '/vendor/Klein/ResponseCookie.php');
+require_once(dirname(__FILE__) . '/vendor/Klein/HttpStatus.php');
+require_once(dirname(__FILE__) . '/vendor/Klein/Validator.php');
 
 
-require_once(dirname(__FILE__) . '/../vendor/Klein/DataCollection/DataCollection.php');
-require_once(dirname(__FILE__) . '/../vendor/Klein/DataCollection/ServerDataCollection.php');
-require_once(dirname(__FILE__) . '/../vendor/Klein/DataCollection/HeaderDataCollection.php');
-require_once(dirname(__FILE__) . '/../vendor/Klein/DataCollection/ResponseCookieDataCollection.php');
+require_once(dirname(__FILE__) . '/vendor/Klein/DataCollection/DataCollection.php');
+require_once(dirname(__FILE__) . '/vendor/Klein/DataCollection/ServerDataCollection.php');
+require_once(dirname(__FILE__) . '/vendor/Klein/DataCollection/HeaderDataCollection.php');
+require_once(dirname(__FILE__) . '/vendor/Klein/DataCollection/ResponseCookieDataCollection.php');
 
-require_once(dirname(__FILE__) . '/../vendor/Klein/Exceptions/KleinExceptionInterface.php');
-require_once(dirname(__FILE__) . '/../vendor/Klein/Exceptions/DuplicateServiceException.php');
-require_once(dirname(__FILE__) . '/../vendor/Klein/Exceptions/LockedResponseException.php');
-require_once(dirname(__FILE__) . '/../vendor/Klein/Exceptions/ResponseAlreadySentException.php');
-require_once(dirname(__FILE__) . '/../vendor/Klein/Exceptions/UnhandledException.php');
-require_once(dirname(__FILE__) . '/../vendor/Klein/Exceptions/UnknownServiceException.php');
-require_once(dirname(__FILE__) . '/../vendor/Klein/Exceptions/ValidationException.php');
+require_once(dirname(__FILE__) . '/vendor/Klein/Exceptions/KleinExceptionInterface.php');
+require_once(dirname(__FILE__) . '/vendor/Klein/Exceptions/DuplicateServiceException.php');
+require_once(dirname(__FILE__) . '/vendor/Klein/Exceptions/LockedResponseException.php');
+require_once(dirname(__FILE__) . '/vendor/Klein/Exceptions/ResponseAlreadySentException.php');
+require_once(dirname(__FILE__) . '/vendor/Klein/Exceptions/UnhandledException.php');
+require_once(dirname(__FILE__) . '/vendor/Klein/Exceptions/UnknownServiceException.php');
+require_once(dirname(__FILE__) . '/vendor/Klein/Exceptions/ValidationException.php');
 
 
 
