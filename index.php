@@ -5,6 +5,10 @@ require_once(__DIR__ . '/config/DependencyLoader.php');
 
 $klein = new \Klein\Klein();
 
+$klein->respond('GET', '/realms/m/login', function($request, $response, $service) {
+	$service->render('pages/login.php', array());
+});
+
 $klein->respond('GET', '/realms/info/status', function($request) {
 	return json_encode(array('buyServerEnabled' => false, 'createServerEnabled' => false));
 });
