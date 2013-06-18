@@ -23,12 +23,12 @@ class Server {
 	public $maxPlayers;
 	
 	/**
-     * @ManyToOne(targetEntity="Realms\Player", inversedBy="servers")
-     * @JoinColumn(name="ownerId", referencedColumnName="playerId")
-     **/
-    private $owner;
+	 * @ManyToOne(targetEntity="Realms\Player", inversedBy="servers")
+	 * @JoinColumn(name="ownerId", referencedColumnName="playerId")
+	**/
+	private $owner;
     
-    /**
+	/**
 	 * @OneToMany(targetEntity="Realms\Invite", mappedBy="server")
 	 */
 	public $invitations;
@@ -40,15 +40,15 @@ class Server {
 
 	public function __construct() {
 		$this->invitations = new \Doctrine\Common\Collections\ArrayCollection();
-    	$this->players = new \Doctrine\Common\Collections\ArrayCollection();
+		$this->players = new \Doctrine\Common\Collections\ArrayCollection();
 
 
-        $this->port = 19132;
-        $this->open = true;
-        $this->type = 'creative';
-        $this->key = '??xxxx??';
-        $this->maxPlayers = 20;
-    }
+		$this->port = 19132;
+		$this->open = true;
+		$this->type = 'creative';
+		$this->key = '??xxxx??';
+		$this->maxPlayers = 20;
+	}
 	
 	public function getServerId() {
 		return $this->serverId;
