@@ -5,8 +5,6 @@
 class Invite {
 	/** @Id @Column(type="integer") @GeneratedValue **/
 	private $inviteId;
-	/** @Column(type="boolean", nullable=false) **/
-	private $accepted;
 	
 	/**
 	 * @ManyToOne(targetEntity="Realms\Server", inversedBy="invitations")
@@ -20,18 +18,10 @@ class Invite {
 	private $player;
 	
 	public function __construct() {
-		$this->accepted = false;
 	}
 	
 	public function getInviteId() {
 		return $this->inviteId;
-	}
-	
-	public function getAccepted() {
-		return $this->accepted;
-	}
-	public function setAccepted($accepted) {
-		$this->accepted = $accepted;
 	}
 	
 	public function getServer() {
