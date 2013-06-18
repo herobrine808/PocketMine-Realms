@@ -21,16 +21,16 @@ class Player {
 	public $invitations;
 	
 	/**
-     * @ManyToOne(targetEntity="Realms\Server", inversedBy="players")
-     * @JoinColumn(name="serverId", referencedColumnName="serverId")
-     **/
-    private $server;
+	 * @ManyToOne(targetEntity="Realms\Server", inversedBy="players")
+	 * @JoinColumn(name="serverId", referencedColumnName="serverId")
+	**/
+	private $server;
 	
 	public function __construct() {
-    	$this->servers = new \Doctrine\Common\Collections\ArrayCollection();
+    		$this->servers = new \Doctrine\Common\Collections\ArrayCollection();
    		$this->invitations = new \Doctrine\Common\Collections\ArrayCollection();
 
-    }
+	}
 	
 	public function getPlayerId() {
 		return $this->playerId;
