@@ -1,11 +1,6 @@
 <?php
 require_once(dirname(__FILE__).'/../vendor/autoload.php');
 
-//realms
-require_once(dirname(__FILE__).'/../entities/Server.php');
-require_once(dirname(__FILE__).'/../entities/Player.php');
-require_once(dirname(__FILE__).'/../entities/Invite.php');
-
 use Doctrine\ORM\Tools\Setup;
 use Doctrine\ORM\EntityManager;
 

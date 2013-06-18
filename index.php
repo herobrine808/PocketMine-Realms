@@ -1,53 +1,7 @@
 <?php
 
-require_once(dirname(__FILE__) . '/config/bootstrap.php');
+require_once(__DIR__ . '/config/DependencyLoader.php');
 
-require_once(dirname(__FILE__) . '/vendor/Klein/Klein.php');
-require_once(dirname(__FILE__) . '/vendor/Klein/ServiceProvider.php');
-require_once(dirname(__FILE__) . '/vendor/Klein/App.php');
-require_once(dirname(__FILE__) . '/vendor/Klein/Request.php');
-require_once(dirname(__FILE__) . '/vendor/Klein/Response.php');
-require_once(dirname(__FILE__) . '/vendor/Klein/ResponseCookie.php');
-require_once(dirname(__FILE__) . '/vendor/Klein/HttpStatus.php');
-require_once(dirname(__FILE__) . '/vendor/Klein/Validator.php');
-
-
-require_once(dirname(__FILE__) . '/vendor/Klein/DataCollection/DataCollection.php');
-require_once(dirname(__FILE__) . '/vendor/Klein/DataCollection/ServerDataCollection.php');
-require_once(dirname(__FILE__) . '/vendor/Klein/DataCollection/HeaderDataCollection.php');
-require_once(dirname(__FILE__) . '/vendor/Klein/DataCollection/ResponseCookieDataCollection.php');
-
-require_once(dirname(__FILE__) . '/vendor/Klein/Exceptions/KleinExceptionInterface.php');
-require_once(dirname(__FILE__) . '/vendor/Klein/Exceptions/DuplicateServiceException.php');
-require_once(dirname(__FILE__) . '/vendor/Klein/Exceptions/LockedResponseException.php');
-require_once(dirname(__FILE__) . '/vendor/Klein/Exceptions/ResponseAlreadySentException.php');
-require_once(dirname(__FILE__) . '/vendor/Klein/Exceptions/UnhandledException.php');
-require_once(dirname(__FILE__) . '/vendor/Klein/Exceptions/UnknownServiceException.php');
-require_once(dirname(__FILE__) . '/vendor/Klein/Exceptions/ValidationException.php');
-
-
-
-class EntityManager {
-	public $em;
-
-	private static $instance = null;
-	public static function StartInstance($em) {
-		if(self::$instance === null) {
-			self::$instance = new EntityManager($em);
-		}
-	}
-
-	public static function Instance()
-    {
-        return self::$instance;
-    }
-
-	protected function __construct($em) {
-		$this->em = $em;
-	}
-}
-
-EntityManager::StartInstance($entityManager);
 
 $klein = new \Klein\Klein();
 
@@ -58,7 +12,7 @@ $klein->respond('GET', '/realms/info/status', function($request) {
 //TODO list only whitelisted?
 //TODO get player?
 $klein->respond('GET', '/realms/server/list', function ($request) {
-	$servers = EntityManager::Instance()->em->getRepository('Realms\Server')->findAll();
+	$servers = EntityManager::get()->getRepository('Realms\Server')->findAll();
 	$response = array();
 	foreach($servers as $server) {
 		$invited = array();
@@ -92,7 +46,7 @@ $klein->respond('GET', '/realms/server/list', function ($request) {
 $klein->respond('POST', '/realms/server/[i:id]/join', function ($request, $response) {
 	//401 Session is required or Invalid session id or Not invited
 
-	$server = EntityManager::Instance()->em->find('Realms\Server', $request->id);
+	$server = EntityManager::get()->find('Realms\Server', $request->id);
 	if($server === null) {
 		$response->code(404);
 		$response->body('Server not found');
@@ -124,12 +78,12 @@ $klein->respond('POST', '/realms/server/create', function ($request, $response) 
 	$server->setName($request->name);
 	$server->setType($request->type);
 	$server->setSeed($request->seed);
-	$server->setOwner(EntityManager::Instance()->em->find('Realms\Player', 2));
+	$server->setOwner(EntityManager::get()->find('Realms\Player', 2));
 	$server->setIp('10.10.10.10');
 	$server->setPort(19132);
 	
-	EntityManager::Instance()->em->persist($server);
-	EntityManager::Instance()->em->flush();
+	EntityManager::get()->persist($server);
+	EntityManager::get()->flush();
 	
 	return '{"success":true}';
 	
@@ -138,7 +92,7 @@ $klein->respond('POST', '/realms/server/create', function ($request, $response) 
 
 // From client
 $klein->respond('PUT', '/realms/server/[i:id]/name/[a:name]', function($request, $response) {
-	$server = EntityManager::Instance()->em->find('Realms\Server', $request->id);
+	$server = EntityManager::get()->find('Realms\Server', $request->id);
 	if($server === null) {
 		$response->code(404);
 		$response->body('Server not found');
@@ -148,8 +102,8 @@ $klein->respond('PUT', '/realms/server/[i:id]/name/[a:name]', function($request,
 	
 	$server->setName($request->name);
 	
-	EntityManager::Instance()->em->merge($server);
-	EntityManager::Instance()->em->flush();
+	EntityManager::get()->merge($server);
+	EntityManager::get()->flush();
 	
 	return '{"success":true}';
 });
@@ -157,7 +111,7 @@ $klein->respond('PUT', '/realms/server/[i:id]/name/[a:name]', function($request,
 // From client?
 // Check owner
 $klein->respond('PUT', '/realms/server/[i:id]/open', function($request, $response) {
-	$server = EntityManager::Instance()->em->find('Realms\Server', $request->id);
+	$server = EntityManager::get()->find('Realms\Server', $request->id);
 	if($server === null) {
 		$response->code(404);
 		$response->body('Server not found');
@@ -167,8 +121,8 @@ $klein->respond('PUT', '/realms/server/[i:id]/open', function($request, $respons
 	
 	$server->setOpen(true);
 	
-	EntityManager::Instance()->em->merge($server);
-	EntityManager::Instance()->em->flush();
+	EntityManager::get()->merge($server);
+	EntityManager::get()->flush();
 	
 	return '{"success":true}';
 });
@@ -176,7 +130,7 @@ $klein->respond('PUT', '/realms/server/[i:id]/open', function($request, $respons
 // From client?
 // Check owner
 $klein->respond('PUT', '/realms/server/[i:id]/close', function($request, $response) {
-	$server = EntityManager::Instance()->em->find('Realms\Server', $request->id);
+	$server = EntityManager::get()->find('Realms\Server', $request->id);
 	if($server === null) {
 		$response->code(404);
 		$response->body('Server not found');
@@ -186,15 +140,15 @@ $klein->respond('PUT', '/realms/server/[i:id]/close', function($request, $respon
 	
 	$server->setOpen(false);
 	
-	EntityManager::Instance()->em->merge($server);
-	EntityManager::Instance()->em->flush();
+	EntityManager::get()->merge($server);
+	EntityManager::get()->flush();
 	
 	return '{"success":true}';
 });
 
 // From client
 $klein->respond('PUT', '/realms/server/[i:id]/whitelist/[a:name]', function($request, $response) {
-	$server = EntityManager::Instance()->em->find('Realms\Server', $request->id);
+	$server = EntityManager::get()->find('Realms\Server', $request->id);
 	if($server === null) {
 		$response->code(404);
 		$response->body('Server not found');
@@ -202,7 +156,7 @@ $klein->respond('PUT', '/realms/server/[i:id]/whitelist/[a:name]', function($req
 		return;
 	}
 	
-	$player = EntityManager::Instance()->em->getRepository('Realms\Player')->findOneBy(array('name' => $request->name));
+	$player = EntityManager::get()->getRepository('Realms\Player')->findOneBy(array('name' => $request->name));
 	if($player === null) {
 		$response->code(404);
 		$response->body('Player not found');
@@ -210,13 +164,13 @@ $klein->respond('PUT', '/realms/server/[i:id]/whitelist/[a:name]', function($req
 		return;
 	}
 	
-	$invite = EntityManager::Instance()->em->getRepository('Realms\Player')->findOneBy(array('server' => $server, 'player' => $player));
+	$invite = EntityManager::get()->getRepository('Realms\Player')->findOneBy(array('server' => $server, 'player' => $player));
 	if($invite === null) {
 		$invite = new Realms\Invite();
 		$invite->setServer($server);
 		$invite->setPlayer($player);
-		EntityManager::Instance()->em->persist($invite);
-		EntityManager::Instance()->em->flush();
+		EntityManager::get()->persist($invite);
+		EntityManager::get()->flush();
 	}
 	
 	$response->code(200);
@@ -227,7 +181,7 @@ $klein->respond('PUT', '/realms/server/[i:id]/whitelist/[a:name]', function($req
 
 // From client
 $klein->respond('DELETE', '/realms/server/[i:id]/whitelist/[a:name]', function($request, $response) {
-	$server = EntityManager::Instance()->em->find('Realms\Server', $request->id);
+	$server = EntityManager::get()->find('Realms\Server', $request->id);
 	if($server === null) {
 		$response->code(404);
 		$response->body('Server not found');
@@ -235,7 +189,7 @@ $klein->respond('DELETE', '/realms/server/[i:id]/whitelist/[a:name]', function($
 		return;
 	}
 	
-	$player = EntityManager::Instance()->em->getRepository('Realms\Player')->findOneBy(array('name' => $request->name));
+	$player = EntityManager::get()->getRepository('Realms\Player')->findOneBy(array('name' => $request->name));
 	if($player === null) {
 		$response->code(404);
 		$response->body('Player not found');
@@ -243,7 +197,7 @@ $klein->respond('DELETE', '/realms/server/[i:id]/whitelist/[a:name]', function($
 		return;
 	}
 	
-	$invite = EntityManager::Instance()->em->getRepository('Realms\Player')->findOneBy(array('server' => $server, 'player' => $player));
+	$invite = EntityManager::get()->getRepository('Realms\Player')->findOneBy(array('server' => $server, 'player' => $player));
 	if($invite === null) {
 		$response->code(404);
 		$response->body('Not invited');
@@ -251,8 +205,8 @@ $klein->respond('DELETE', '/realms/server/[i:id]/whitelist/[a:name]', function($
 		return;
 	}
 	
-	EntityManager::Instance()->em->remove($invite);
-	EntityManager::Instance()->em->flush();
+	EntityManager::get()->remove($invite);
+	EntityManager::get()->flush();
 	
 	$response->code(200);
 	$response->body('Player invited');
