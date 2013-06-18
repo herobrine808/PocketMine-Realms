@@ -9,6 +9,13 @@ $klein->respond('GET', '/realms/m/login', function($request, $response, $service
 	$service->render('pages/login.php', array());
 });
 
+$klein->respond('POST', '/realms/player/add', function($request, $response) {
+	//Should have player and sessionId
+	// Cookies should contain key to verify auth server
+	//TODO Implement this
+	return json_encode(array());	
+});
+
 $klein->respond('GET', '/realms/info/status', function($request) {
 	return json_encode(array('buyServerEnabled' => false, 'createServerEnabled' => false));
 });
@@ -236,7 +243,5 @@ $klein->respond('GET', '/realms/auth/validate-player/[a:a]/[a:b]', function($req
 });
 
 $klein->dispatch();
-
-//echo 'Hello';
 
 ?>
