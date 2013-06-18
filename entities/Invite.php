@@ -9,19 +9,19 @@ class Invite {
 	private $accepted;
 	
 	/**
-     * @ManyToOne(targetEntity="Realms\Server", inversedBy="invitations")
-     * @JoinColumn(name="serverId", referencedColumnName="serverId")
-     **/
-    private $server;
+	 * @ManyToOne(targetEntity="Realms\Server", inversedBy="invitations")
+	 * @JoinColumn(name="serverId", referencedColumnName="serverId")
+	**/
+	private $server;
 	/**
-     * @ManyToOne(targetEntity="Realms\Player", inversedBy="invitations")
-     * @JoinColumn(name="playerId", referencedColumnName="playerId")
-     **/
-    private $player;
+	 * @ManyToOne(targetEntity="Realms\Player", inversedBy="invitations")
+	 * @JoinColumn(name="playerId", referencedColumnName="playerId")
+	**/
+	private $player;
 	
 	public function __construct() {
 		$this->accepted = false;
-    }
+	}
 	
 	public function getInviteId() {
 		return $this->inviteId;
