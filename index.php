@@ -111,6 +111,13 @@ $requestHandler->respond('POST', '/realms/server/[i:id]/join', function ($reques
 		return;
 	}
 	
+	if(!$server->getIsOpen()) {
+		$response->code(401);
+		$response->body('Server closed');
+		$response->send();
+		return;
+	}
+	
 	if($server->getOwner()->getPlayerId() !== $caller->getPlayerId()) {
 		$invite = EntityManager::get()->getRepository('Realms\Invite')->findOneBy(array(
 			'player' => $caller,
