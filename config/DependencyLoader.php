@@ -2,6 +2,7 @@
 
 // Entity Manager
 require_once(__DIR__ . '/EntityManager.php');
+require_once(__DIR__ . '/Utils.php');
 
 // Entities
 require_once(__DIR__ . '/../entities/Server.php');
@@ -30,6 +31,8 @@ require_once(__DIR__ . '/../vendor/Klein/Exceptions/ResponseAlreadySentException
 require_once(__DIR__ . '/../vendor/Klein/Exceptions/UnhandledException.php');
 require_once(__DIR__ . '/../vendor/Klein/Exceptions/UnknownServiceException.php');
 require_once(__DIR__ . '/../vendor/Klein/Exceptions/ValidationException.php');
+
+$requestHandler = new \Klein\Klein();
 
 
 ?>

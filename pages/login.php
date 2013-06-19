@@ -4,9 +4,9 @@
 	<title>Pocket Realms</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     
-    <link href="/realms/assets/bootstrap/css/bootstrap.min.css" rel="stylesheet" media="screen">
-    <link href="/realms/assets/bootstrap/css/bootstrap-responsive.min.css" rel="stylesheet" media="screen">
-    <link href="/realms/assets/bootstrap/css/metro-bootstrap.css" rel="stylesheet" medial="screen">
+    <link href="/realms/pages/assets/bootstrap/css/bootstrap.min.css" rel="stylesheet" media="screen">
+    <link href="/realms/pages/assets/bootstrap/css/bootstrap-responsive.min.css" rel="stylesheet" media="screen">
+    <link href="/realms/pages/assets/bootstrap/css/metro-bootstrap.css" rel="stylesheet" medial="screen">
     <style>
     	body {
 	    	background-color: #353535;
@@ -60,7 +60,7 @@
 	</div>
 		
 	<script src="http://code.jquery.com/jquery.js"></script>
-	<script src="/realms/assets/bootstrap/js/bootstrap.min.js"></script>
+	<script src="/realms/pages/assets/bootstrap/js/bootstrap.min.js"></script>
 	
 </body>
 </html>

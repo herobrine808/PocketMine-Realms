@@ -3,28 +3,54 @@
 require_once(__DIR__ . '/config/DependencyLoader.php');
 
 
-$klein = new \Klein\Klein();
-
-$klein->respond('GET', '/realms/m/login', function($request, $response, $service) {
+// TODO all this needs to be finished!
+$requestHandler->respond('GET', '/realms/m/login', function($request, $response, $service) {
 	$service->render('pages/login.php', array());
 });
 
-$klein->respond('POST', '/realms/player/add', function($request, $response) {
-	//Should have player and sessionId
-	// Cookies should contain key to verify auth server
-	//TODO Implement this
-	return json_encode(array());	
+$requestHandler->respond('GET', '/realms/m/register', function($request, $response, $service) {
+	$service->render('pages/register.php', array());
 });
 
-$klein->respond('GET', '/realms/info/status', function($request) {
+// Below is pretty much ready
+
+$requestHandler->respond('GET', '/realms/info/status', function($request) {
 	return json_encode(array('buyServerEnabled' => false, 'createServerEnabled' => false));
 });
 
-//TODO list only whitelisted?
-//TODO get player?
-$klein->respond('GET', '/realms/server/list', function ($request) {
-	$servers = EntityManager::get()->getRepository('Realms\Server')->findAll();
-	$response = array();
+$requestHandler->respond('GET', '/realms/server/list', function ($request, $response) {
+	
+	if(!isset($request->sid)) {
+		$sid = $request->cookies()->get('sid');
+		if($sid === null) {
+			$response->code(401);
+			$response->body('Session is required');
+			$response->send();
+			return;
+		}
+	} else {
+		$sid = $request->sid;
+	}
+	
+	
+	$caller = EntityManager::get()->getRepository('Realms\Player')->findOneBy(array('sessionId' => $sid));
+	if($caller === null) {
+		$response->code(401);
+		$response->body('Invalid session');
+		$response->send();
+		return;
+	}
+	
+	$servers = array();
+	foreach($caller->getInvitations() as $invite) {
+		$servers[] = $invite->getServer();
+	}
+	
+	foreach($caller->getServers() as $server) {
+		$servers[] = $server;
+	}
+
+	$data = array();
 	foreach($servers as $server) {
 		$invited = array();
 		foreach($server->getInvitations() as $invite) {
@@ -36,12 +62,12 @@ $klein->respond('GET', '/realms/server/list', function ($request) {
 			$players[] = $player->getName();
 		}
 		
-		$response[] = array(
+		$data[] = array(
 			'serverId' => $server->getServerId(),
 			'name' => $server->getName(),
 			'open' => $server->getOpen(),
 			'ownerName' => $server->getOwner()->getName(),
-			'myWorld' => false,
+			'myWorld' => ($server->getOwner()->getPlayerId() === $caller->getPlayerId()),
 			'maxNrPlayers' => $server->getMaxPlayers(),
 			'type' => $server->getType(),
 			'playerNames' => $players,
@@ -49,23 +75,54 @@ $klein->respond('GET', '/realms/server/list', function ($request) {
 		);
 		
 		unset($invited);
+		unset($players);
 			 
 	}
-    return json_encode($response);
+    return json_encode($data);
 });
 
-$klein->respond('POST', '/realms/server/[i:id]/join', function ($request, $response) {
-	//401 Session is required or Invalid session id or Not invited
+$requestHandler->respond('POST', '/realms/server/[i:id]/join', function ($request, $response) {
+	if(!isset($request->sid)) {
+		$sid = $request->cookies()->get('sid');
+		if($sid === null) {
+			$response->code(401);
+			$response->body('Session is required');
+			$response->send();
+			return;
+		}
+	} else {
+		$sid = $request->sid;
+	}
+	
+	
+	$caller = EntityManager::get()->getRepository('Realms\Player')->findOneBy(array('sessionId' => $sid));
+	if($caller === null) {
+		$response->code(401);
+		$response->body('Invalid session');
+		$response->send();
+		return;
+	}
 
 	$server = EntityManager::get()->find('Realms\Server', $request->id);
 	if($server === null) {
 		$response->code(404);
-		$response->body('Server not found');
+		$response->body('Invalid server');
 		$response->send();
 		return;
 	}
 	
-	// Validate against whitelist
+	if($server->getOwner()->getPlayerId() !== $caller->getPlayerId()) {
+		$invite = EntityManager::get()->getRepository('Realms\Invite')->findOneBy(array(
+			'player' => $caller,
+			'server' => $server
+		));
+		if($invite === null) {
+			$response->code(401);
+			$response->body('Not invited');
+			$response->send();
+			return;
+		}
+	}
 	
 	$data = array(
 		'ip' => $server->getIp(),
@@ -74,10 +131,12 @@ $klein->respond('POST', '/realms/server/[i:id]/join', function ($request, $respo
 	);
 	
 	return json_encode($data);
+	
+	
+		
 });
 
-//Set extra info?
-$klein->respond('POST', '/realms/server/create', function ($request, $response) {
+$requestHandler->respond('POST', '/realms/server/create', function ($request, $response) {
 	if(!isset($request->name) || !isset($request->type) || !isset($request->seed)) {
 		$response->code(400);
 		$response->body('Bad request');
@@ -101,12 +160,40 @@ $klein->respond('POST', '/realms/server/create', function ($request, $response) 
 	
 });
 
-// From client
-$klein->respond('PUT', '/realms/server/[i:id]/name/[a:name]', function($request, $response) {
+$requestHandler->respond('PUT', '/realms/server/[i:id]/name/[a:name]', function($request, $response) {
+	
+	if(!isset($request->sid)) {
+		$sid = $request->cookies()->get('sid');
+		if($sid === null) {
+			$response->code(401);
+			$response->body('Session is required');
+			$response->send();
+			return;
+		}
+	} else {
+		$sid = $request->sid;
+	}
+	
+	
+	$caller = EntityManager::get()->getRepository('Realms\Player')->findOneBy(array('sessionId' => $sid));
+	if($caller === null) {
+		$response->code(401);
+		$response->body('Invalid session');
+		$response->send();
+		return;
+	}
+	
 	$server = EntityManager::get()->find('Realms\Server', $request->id);
 	if($server === null) {
 		$response->code(404);
-		$response->body('Server not found');
+		$response->body('Invalid server');
+		$response->send();
+		return;
+	}
+	
+	if($server->getOwner()->getPlayerId() !== $caller->getPlayerId()) {
+		$response->code(401);
+		$response->body('Not owner');
 		$response->send();
 		return;
 	}
@@ -116,16 +203,42 @@ $klein->respond('PUT', '/realms/server/[i:id]/name/[a:name]', function($request,
 	EntityManager::get()->merge($server);
 	EntityManager::get()->flush();
 	
-	return '{"success":true}';
+	return 'Renamed';
 });
 
-// From client?
-// Check owner
-$klein->respond('PUT', '/realms/server/[i:id]/open', function($request, $response) {
+$requestHandler->respond('PUT', '/realms/server/[i:id]/open', function($request, $response) {
+	if(!isset($request->sid)) {
+		$sid = $request->cookies()->get('sid');
+		if($sid === null) {
+			$response->code(401);
+			$response->body('Session is required');
+			$response->send();
+			return;
+		}
+	} else {
+		$sid = $request->sid;
+	}
+	
+	
+	$caller = EntityManager::get()->getRepository('Realms\Player')->findOneBy(array('sessionId' => $sid));
+	if($caller === null) {
+		$response->code(401);
+		$response->body('Invalid session');
+		$response->send();
+		return;
+	}
+
 	$server = EntityManager::get()->find('Realms\Server', $request->id);
 	if($server === null) {
 		$response->code(404);
-		$response->body('Server not found');
+		$response->body('Invalid server');
+		$response->send();
+		return;
+	}
+	
+	if($server->getOwner()->getPlayerId() !== $caller->getPlayerId()) {
+		$response->code(401);
+		$response->body('Not owner');
 		$response->send();
 		return;
 	}
@@ -135,16 +248,42 @@ $klein->respond('PUT', '/realms/server/[i:id]/open', function($request, $respons
 	EntityManager::get()->merge($server);
 	EntityManager::get()->flush();
 	
-	return '{"success":true}';
+	return 'Opened';
 });
 
-// From client?
-// Check owner
-$klein->respond('PUT', '/realms/server/[i:id]/close', function($request, $response) {
+$requestHandler->respond('PUT', '/realms/server/[i:id]/close', function($request, $response) {
+	if(!isset($request->sid)) {
+		$sid = $request->cookies()->get('sid');
+		if($sid === null) {
+			$response->code(401);
+			$response->body('Session is required');
+			$response->send();
+			return;
+		}
+	} else {
+		$sid = $request->sid;
+	}
+	
+	
+	$caller = EntityManager::get()->getRepository('Realms\Player')->findOneBy(array('sessionId' => $sid));
+	if($caller === null) {
+		$response->code(401);
+		$response->body('Invalid session');
+		$response->send();
+		return;
+	}
+
 	$server = EntityManager::get()->find('Realms\Server', $request->id);
 	if($server === null) {
 		$response->code(404);
-		$response->body('Server not found');
+		$response->body('Invalid server');
+		$response->send();
+		return;
+	}
+	
+	if($server->getOwner()->getPlayerId() !== $caller->getPlayerId()) {
+		$response->code(401);
+		$response->body('Not owner');
 		$response->send();
 		return;
 	}
@@ -154,15 +293,42 @@ $klein->respond('PUT', '/realms/server/[i:id]/close', function($request, $respon
 	EntityManager::get()->merge($server);
 	EntityManager::get()->flush();
 	
-	return '{"success":true}';
+	return 'Closed';
 });
 
-// From client
-$klein->respond('PUT', '/realms/server/[i:id]/whitelist/[a:name]', function($request, $response) {
+$requestHandler->respond('PUT', '/realms/server/[i:id]/whitelist/[a:name]', function($request, $response) {
+	if(!isset($request->sid)) {
+		$sid = $request->cookies()->get('sid');
+		if($sid === null) {
+			$response->code(401);
+			$response->body('Session is required');
+			$response->send();
+			return;
+		}
+	} else {
+		$sid = $request->sid;
+	}
+	
+	
+	$caller = EntityManager::get()->getRepository('Realms\Player')->findOneBy(array('sessionId' => $sid));
+	if($caller === null) {
+		$response->code(401);
+		$response->body('Invalid session');
+		$response->send();
+		return;
+	}
+	
 	$server = EntityManager::get()->find('Realms\Server', $request->id);
 	if($server === null) {
 		$response->code(404);
-		$response->body('Server not found');
+		$response->body('Invalid server');
+		$response->send();
+		return;
+	}
+	
+	if($server->getOwner()->getPlayerId() !== $caller->getPlayerId()) {
+		$response->code(401);
+		$response->body('Not owner');
 		$response->send();
 		return;
 	}
@@ -170,7 +336,7 @@ $klein->respond('PUT', '/realms/server/[i:id]/whitelist/[a:name]', function($req
 	$player = EntityManager::get()->getRepository('Realms\Player')->findOneBy(array('name' => $request->name));
 	if($player === null) {
 		$response->code(404);
-		$response->body('Player not found');
+		$response->body('Invalid player');
 		$response->send();
 		return;
 	}
@@ -190,12 +356,39 @@ $klein->respond('PUT', '/realms/server/[i:id]/whitelist/[a:name]', function($req
 	return;
 });
 
-// From client
-$klein->respond('DELETE', '/realms/server/[i:id]/whitelist/[a:name]', function($request, $response) {
+$requestHandler->respond('DELETE', '/realms/server/[i:id]/whitelist/[a:name]', function($request, $response) {
+	if(!isset($request->sid)) {
+		$sid = $request->cookies()->get('sid');
+		if($sid === null) {
+			$response->code(401);
+			$response->body('Session is required');
+			$response->send();
+			return;
+		}
+	} else {
+		$sid = $request->sid;
+	}
+	
+	
+	$caller = EntityManager::get()->getRepository('Realms\Player')->findOneBy(array('sessionId' => $sid));
+	if($caller === null) {
+		$response->code(401);
+		$response->body('Invalid session');
+		$response->send();
+		return;
+	}
+	
 	$server = EntityManager::get()->find('Realms\Server', $request->id);
 	if($server === null) {
 		$response->code(404);
 		$response->body('Server not found');
+		$response->send();
+		return;
+	}
+	
+	if($server->getOwner()->getPlayerId() !== $caller->getPlayerId()) {
+		$response->code(401);
+		$response->body('Not owner');
 		$response->send();
 		return;
 	}
@@ -225,8 +418,7 @@ $klein->respond('DELETE', '/realms/server/[i:id]/whitelist/[a:name]', function($
 	return;
 });
 
-// From server
-$klein->respond('POST', '/realms/server/heartbeat', function($request, $response) {
+$requestHandler->respond('POST', '/realms/server/heartbeat', function($request, $response) {
 	if(!isset($request->nplayers)) {
 		$response->code(400);
 		$response->body('Bad request');
@@ -234,14 +426,31 @@ $klein->respond('POST', '/realms/server/heartbeat', function($request, $response
 		return;
 	}
 	
-	//server identifier?
+	$key = $request->cookies()->get('key');
+	if($key === null) {
+		$response->code(401);
+		$response->body('key is required');
+		$response->send();
+		return;
+	}
+	
+	$server = EntityManager::get()->getRepository('Realms\Server')->findOneBy(array('key' => $key));
+	if($server === null) {
+		$response->code(401);
+		$response->body('Invalid key');
+		$response->send();
+		return;
+	}
+	
+	//What should we do with it at this point?
+	
 });
 
 // From server
-$klein->respond('GET', '/realms/auth/validate-player/[a:a]/[a:b]', function($request, $response) {
+$requestHandler->respond('GET', '/realms/auth/validate-player/[a:a]/[a:b]', function($request, $response) {
 	//this probably checks the whitelist but what are the parameters?
 });
 
-$klein->dispatch();
+$requestHandler->dispatch();
 
 ?>
