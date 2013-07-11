@@ -3,22 +3,29 @@
 require_once(__DIR__ . '/config/DependencyLoader.php');
 
 
-// TODO all this needs to be finished!
-$requestHandler->respond('GET', '/realms/m/login', function($request, $response, $service) {
+// TODO Entities (models) need to be written for this
+// A very rough login page is included just to provide the assets
+// that might be used to create the pages.
+$requestHandler->respond('GET', '/m/login', function($request, $response, $service) {
 	$service->render('pages/login.php', array());
 });
 
-$requestHandler->respond('GET', '/realms/m/register', function($request, $response, $service) {
+$requestHandler->respond('GET', '/m/register', function($request, $response, $service) {
 	$service->render('pages/register.php', array());
+});
+
+$requestHandler->respond('GET', '/m/session', function($request, $response) {
+	// This returns the JSON structure as found in
+	// http://account.mojang.com/m/session
 });
 
 // Below is pretty much ready
 
-$requestHandler->respond('GET', '/realms/info/status', function($request) {
+$requestHandler->respond('GET', '/info/status', function($request) {
 	return json_encode(array('buyServerEnabled' => false, 'createServerEnabled' => false));
 });
 
-$requestHandler->respond('GET', '/realms/server/list', function ($request, $response) {
+$requestHandler->respond('GET', '/server/list', function ($request, $response) {
 	
 	if(!isset($request->sid)) {
 		$sid = $request->cookies()->get('sid');
@@ -81,7 +88,7 @@ $requestHandler->respond('GET', '/realms/server/list', function ($request, $resp
     return json_encode($data);
 });
 
-$requestHandler->respond('POST', '/realms/server/[i:id]/join', function ($request, $response) {
+$requestHandler->respond('POST', '/server/[i:id]/join', function ($request, $response) {
 	if(!isset($request->sid)) {
 		$sid = $request->cookies()->get('sid');
 		if($sid === null) {
@@ -143,7 +150,7 @@ $requestHandler->respond('POST', '/realms/server/[i:id]/join', function ($reques
 		
 });
 
-$requestHandler->respond('POST', '/realms/server/create', function ($request, $response) {
+$requestHandler->respond('POST', '/server/create', function ($request, $response) {
 	if(!isset($request->name) || !isset($request->type) || !isset($request->seed)) {
 		$response->code(400);
 		$response->body('Bad request');
@@ -167,7 +174,7 @@ $requestHandler->respond('POST', '/realms/server/create', function ($request, $r
 	
 });
 
-$requestHandler->respond('PUT', '/realms/server/[i:id]/name/[a:name]', function($request, $response) {
+$requestHandler->respond('PUT', '/server/[i:id]/name/[a:name]', function($request, $response) {
 	
 	if(!isset($request->sid)) {
 		$sid = $request->cookies()->get('sid');
@@ -213,7 +220,7 @@ $requestHandler->respond('PUT', '/realms/server/[i:id]/name/[a:name]', function(
 	return 'Renamed';
 });
 
-$requestHandler->respond('PUT', '/realms/server/[i:id]/open', function($request, $response) {
+$requestHandler->respond('PUT', '/server/[i:id]/open', function($request, $response) {
 	if(!isset($request->sid)) {
 		$sid = $request->cookies()->get('sid');
 		if($sid === null) {
@@ -258,7 +265,7 @@ $requestHandler->respond('PUT', '/realms/server/[i:id]/open', function($request,
 	return 'Opened';
 });
 
-$requestHandler->respond('PUT', '/realms/server/[i:id]/close', function($request, $response) {
+$requestHandler->respond('PUT', '/server/[i:id]/close', function($request, $response) {
 	if(!isset($request->sid)) {
 		$sid = $request->cookies()->get('sid');
 		if($sid === null) {
@@ -303,7 +310,7 @@ $requestHandler->respond('PUT', '/realms/server/[i:id]/close', function($request
 	return 'Closed';
 });
 
-$requestHandler->respond('PUT', '/realms/server/[i:id]/whitelist/[a:name]', function($request, $response) {
+$requestHandler->respond('PUT', '/server/[i:id]/whitelist/[a:name]', function($request, $response) {
 	if(!isset($request->sid)) {
 		$sid = $request->cookies()->get('sid');
 		if($sid === null) {
@@ -363,7 +370,7 @@ $requestHandler->respond('PUT', '/realms/server/[i:id]/whitelist/[a:name]', func
 	return;
 });
 
-$requestHandler->respond('DELETE', '/realms/server/[i:id]/whitelist/[a:name]', function($request, $response) {
+$requestHandler->respond('DELETE', '/server/[i:id]/whitelist/[a:name]', function($request, $response) {
 	if(!isset($request->sid)) {
 		$sid = $request->cookies()->get('sid');
 		if($sid === null) {
@@ -425,7 +432,9 @@ $requestHandler->respond('DELETE', '/realms/server/[i:id]/whitelist/[a:name]', f
 	return;
 });
 
-$requestHandler->respond('POST', '/realms/server/heartbeat', function($request, $response) {
+
+// The server sends this to the API. A plugin must be written to handle this portion
+$requestHandler->respond('POST', '/server/heartbeat', function($request, $response) {
 	if(!isset($request->nplayers)) {
 		$response->code(400);
 		$response->body('Bad request');
@@ -449,13 +458,24 @@ $requestHandler->respond('POST', '/realms/server/heartbeat', function($request, 
 		return;
 	}
 	
-	//What should we do with it at this point?
-	
+	// We aren't entirely sure what nplayers entails.
+	// We know that this should be the server announcing that it is alive
+	// and it may be viable to add a flag to the server model to show/hide
+	// the server accordingly in /server/list
 });
 
-// From server
-$requestHandler->respond('GET', '/realms/auth/validate-player/[a:a]/[a:b]', function($request, $response) {
+// The server sends this as well. We have no example of what the two parameters are.
+
+$requestHandler->respond('GET', '/auth/validate-player/[a:a]/[a:b]', function($request, $response) {
 	//this probably checks the whitelist but what are the parameters?
+	
+	$key = $request->cookies()->get('key');
+	if($key === null) {
+		$response->code(401);
+		$response->body('key is required');
+		$response->send();
+		return;
+	}
 });
 
 $requestHandler->dispatch();
